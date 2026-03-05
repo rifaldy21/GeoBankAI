@@ -4,12 +4,14 @@ import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
 import { ChatMessage } from '../types';
 import { cn } from '../lib/utils';
+import { VisualOutputRenderer } from './IntelligenceAssistant/VisualOutputRenderer';
+import GeminiService from '../services/ai/geminiService';
 
-const Chatbot: React.FC = () => {
+const IntelligenceAssistant: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'model',
-      content: "Halo! Saya BRI AI. Saya bisa membantu Anda menganalisis performa wilayah, produktivitas RM, dan mengidentifikasi peluang pasar baru. Apa yang ingin Anda ketahui hari ini?",
+      content: "Halo! Saya Intelligence Assistant. Saya bisa membantu Anda menganalisis performa wilayah, produktivitas RM, dan mengidentifikasi peluang pasar baru. Apa yang ingin Anda ketahui hari ini?",
       timestamp: new Date()
     }
   ]);
@@ -48,41 +50,29 @@ const Chatbot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      const model = "gemini-3-flash-preview";
+      const geminiService = new GeminiService(process.env.GEMINI_API_KEY!);
       
-      const systemInstruction = `
-        You are BRI AI, a specialized assistant for a banking geospatial intelligence dashboard.
-        Your goal is to provide data-driven insights based on:
-        1. Internal Bank Data: Customer profiles, Merchant/QRIS, Product transactions (Savings, Credit, CASA), RM performance.
-        2. External Data: Market locations, Demographics, Economic indicators (PDRB), Competitive landscape.
-        3. Geospatial: Branch/ATM maps, Admin boundaries, POIs, Radius coverage.
-        
-        Context:
-        - Current User: Bambang S. (Area Manager Jakarta Pusat)
-        - Top RM: Sari Wulandari (84% conversion)
-        - District with most potential: Thamrin (150 potential merchants)
-        - Overall Area Conversion: 24.5%
-        
-        Style: Professional, insightful, and concise. Use Indonesian as the primary language. 
-        If asked for recommendations, suggest specific actions like "Prioritaskan akuisisi di area Thamrin karena PDRB tinggi tapi penetrasi rendah".
-      `;
-
-      const response = await ai.models.generateContent({
-        model,
-        contents: messages.concat(userMessage).map(m => ({
-          role: m.role,
-          parts: [{ text: m.content }]
-        })),
-        config: {
-          systemInstruction,
+      const context = {
+        user: {
+          role: 'Area Manager',
+          assignedArea: 'Jakarta Pusat'
+        },
+        filters: {
+          dateRange: 'Last 30 days',
+          territory: ['Jakarta Pusat']
         }
-      });
+      };
+
+      const response = await geminiService.generateResponse(
+        messages.concat(userMessage),
+        context
+      );
 
       const aiResponse: ChatMessage = {
         role: 'model',
         content: response.text || "Maaf, saya mengalami kendala teknis. Mohon coba lagi.",
-        timestamp: new Date()
+        visualOutput: response.visualOutput,
+        timestamp: response.timestamp
       };
 
       setMessages(prev => [...prev, aiResponse]);
@@ -112,7 +102,7 @@ const Chatbot: React.FC = () => {
             <Sparkles className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold leading-tight">BRI AI Assistant</h3>
+            <h3 className="font-bold leading-tight">Intelligence Assistant</h3>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
               <p className="text-[10px] text-indigo-100 font-medium uppercase tracking-wider">Online • Ready to Analyze</p>
@@ -145,21 +135,29 @@ const Chatbot: React.FC = () => {
             )}>
               {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
             </div>
-            <div className={cn(
-              "p-4 rounded-2xl text-sm shadow-sm",
-              msg.role === 'user' 
-                ? "bg-indigo-600 text-white rounded-tr-none" 
-                : "bg-white text-slate-800 border border-slate-100 rounded-tl-none"
-            )}>
-              <div className="prose prose-sm max-w-none prose-slate">
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
-              </div>
-              <p className={cn(
-                "text-[10px] mt-2 font-medium opacity-50",
-                msg.role === 'user' ? "text-right" : ""
+            <div className="flex-1 space-y-3">
+              <div className={cn(
+                "p-4 rounded-2xl text-sm shadow-sm",
+                msg.role === 'user' 
+                  ? "bg-indigo-600 text-white rounded-tr-none" 
+                  : "bg-white text-slate-800 border border-slate-100 rounded-tl-none"
               )}>
-                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
+                <div className="prose prose-sm max-w-none prose-slate">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+                <p className={cn(
+                  "text-[10px] mt-2 font-medium opacity-50",
+                  msg.role === 'user' ? "text-right" : ""
+                )}>
+                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              {/* Render visual output inline */}
+              {msg.visualOutput && msg.role === 'model' && (
+                <div className="mt-3">
+                  <VisualOutputRenderer output={msg.visualOutput} />
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -230,4 +228,4 @@ const Chatbot: React.FC = () => {
   );
 };
 
-export default Chatbot;
+export default IntelligenceAssistant;

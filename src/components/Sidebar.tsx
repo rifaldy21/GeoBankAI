@@ -1,115 +1,288 @@
-import React from 'react';
-import { 
-  LayoutDashboard, 
-  Map as MapIcon, 
-  Users, 
-  MessageSquare, 
-  Settings, 
-  LogOut,
-  ChevronRight
-} from 'lucide-react';
-import { cn } from '../lib/utils';
+import { FC, useEffect, useCallback, KeyboardEvent } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MENU_CONFIG, type MenuItem, type SubMenuItem } from '../config/menuConfig';
+import {
+  toggleMenu,
+  setActiveRoute,
+  expandMenu,
+  selectExpandedMenus,
+  selectActiveRoute,
+} from '../store/slices/navigationSlice';
+import { clsx } from 'clsx';
+import { preloadMenuComponents } from '../utils/componentPreloader';
 
 interface SidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+/**
+ * Sidebar Component
+ * Multi-level navigation with expandable submenus
+ * 
+ * Features:
+ * - Renders all 8 top-level menu items from MENU_CONFIG
+ * - Expandable/collapsible submenu sections with Motion animations
+ * - Active state highlighting based on current route
+ * - Maintains expansion state in Redux navigationSlice
+ * - Keyboard navigation support (Tab, Enter, Arrow keys)
+ * - ARIA labels and accessibility attributes
+ * - Responsive behavior (full sidebar on desktop, collapsible on mobile)
+ * 
+ * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 17.1, 17.2, 17.3, 19.1, 19.2, 19.3, 19.4
+ */
+const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'maps', label: 'Maps Monitor', icon: MapIcon },
-    { id: 'rm', label: 'RM Performance', icon: Users },
-    { id: 'chatbot', label: 'AI Chatbot', icon: MessageSquare },
-  ];
+  const expandedMenus = useSelector(selectExpandedMenus);
+  const activeRoute = useSelector(selectActiveRoute);
+
+  // Preload components for expanded menus on mount
+  useEffect(() => {
+    expandedMenus.forEach((menuId) => {
+      preloadMenuComponents(menuId);
+    });
+  }, [expandedMenus]);
+
+  // Update active route when location changes
+  useEffect(() => {
+    dispatch(setActiveRoute(location.pathname));
+    
+    // Auto-expand parent menu if current route is a submenu item
+    MENU_CONFIG.forEach((menu) => {
+      if (menu.submenus) {
+        const isSubmenuActive = menu.submenus.some(
+          (submenu) => location.pathname === submenu.path
+        );
+        if (isSubmenuActive && !expandedMenus.includes(menu.id)) {
+          dispatch(expandMenu(menu.id));
+        }
+      }
+    });
+  }, [location.pathname, dispatch, expandedMenus]);
+
+  // Handle menu item click
+  const handleMenuClick = useCallback((menu: MenuItem) => {
+    if (menu.submenus) {
+      // Toggle submenu expansion
+      dispatch(toggleMenu(menu.id));
+      // Preload components for this menu section
+      preloadMenuComponents(menu.id);
+    } else if (menu.path) {
+      // Navigate to route
+      navigate(menu.path);
+      // Preload component for this menu
+      preloadMenuComponents(menu.id);
+      // Close mobile menu if callback provided
+      if (onToggleCollapse) {
+        onToggleCollapse();
+      }
+    }
+  }, [dispatch, navigate, onToggleCollapse]);
+
+  // Handle submenu item click
+  const handleSubmenuClick = useCallback((submenu: SubMenuItem) => {
+    navigate(submenu.path);
+    // Close mobile menu if callback provided
+    if (onToggleCollapse) {
+      onToggleCollapse();
+    }
+  }, [navigate, onToggleCollapse]);
+
+  // Keyboard navigation handler for menu items
+  const handleMenuKeyDown = useCallback((
+    event: KeyboardEvent<HTMLButtonElement>,
+    menu: MenuItem
+  ) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleMenuClick(menu);
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      // Focus next menu item
+      const currentButton = event.currentTarget;
+      const nextButton = currentButton.parentElement?.nextElementSibling?.querySelector('button');
+      if (nextButton instanceof HTMLElement) {
+        nextButton.focus();
+      }
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      // Focus previous menu item
+      const currentButton = event.currentTarget;
+      const prevButton = currentButton.parentElement?.previousElementSibling?.querySelector('button');
+      if (prevButton instanceof HTMLElement) {
+        prevButton.focus();
+      }
+    }
+  }, [handleMenuClick]);
+
+  // Keyboard navigation handler for submenu items
+  const handleSubmenuKeyDown = useCallback((
+    event: KeyboardEvent<HTMLButtonElement>,
+    submenu: SubMenuItem
+  ) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleSubmenuClick(submenu);
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      const currentButton = event.currentTarget;
+      const nextButton = currentButton.parentElement?.nextElementSibling?.querySelector('button');
+      if (nextButton instanceof HTMLElement) {
+        nextButton.focus();
+      }
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      const currentButton = event.currentTarget;
+      const prevButton = currentButton.parentElement?.previousElementSibling?.querySelector('button');
+      if (prevButton instanceof HTMLElement) {
+        prevButton.focus();
+      }
+    }
+  }, [handleSubmenuClick]);
+
+  // Check if menu is active (either direct match or has active submenu)
+  const isMenuActive = useCallback((menu: MenuItem): boolean => {
+    if (menu.path && activeRoute === menu.path) {
+      return true;
+    }
+    if (menu.submenus) {
+      return menu.submenus.some((submenu) => activeRoute === submenu.path);
+    }
+    return false;
+  }, [activeRoute]);
+
+  // Check if submenu is active
+  const isSubmenuActive = useCallback((submenu: SubMenuItem): boolean => {
+    return activeRoute === submenu.path;
+  }, [activeRoute]);
 
   return (
-    <div className={cn(
-      "bg-white border-r border-slate-200 h-screen flex flex-col sticky top-0 transition-all duration-300",
-      isCollapsed ? "w-20" : "w-64"
-    )}>
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-10 h-10 flex items-center justify-center">
-          <img 
-            src="/bri-logo.png" 
-            alt="Logo" 
-            className="w-full h-full object-contain"
-          />
-        </div>
+    <nav
+      className={clsx(
+        'h-full bg-white border-r border-slate-200 flex flex-col transition-all duration-300',
+        isCollapsed ? 'w-16' : 'w-64'
+      )}
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      {/* Sidebar header */}
+      <div className="p-4 border-b border-slate-200">
         {!isCollapsed && (
-          <div>
-            <h1 className="font-bold text-slate-900 text-lg leading-tight">BRI</h1>
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Intelligence</p>
-          </div>
+          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wider">
+            Menu
+          </h2>
         )}
       </div>
 
-      <nav className="flex-1 px-4 py-4 space-y-1">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={cn(
-              "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
-              activeTab === item.id 
-                ? "bg-indigo-50 text-indigo-600 shadow-sm" 
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-            )}
-            title={item.label}
-          >
-            <item.icon className={cn(
-              "w-5 h-5 shrink-0",
-              activeTab === item.id ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"
-            )} />
-            {!isCollapsed && (
-              <>
-                <span className="font-medium">{item.label}</span>
-                {activeTab === item.id && (
-                  <ChevronRight className="w-4 h-4 ml-auto opacity-50" />
+      {/* Menu items */}
+      <div className="flex-1 overflow-y-auto py-4">
+        <ul className="space-y-1 px-2" role="menubar">
+          {MENU_CONFIG.map((menu) => {
+            const isExpanded = expandedMenus.includes(menu.id);
+            const isActive = isMenuActive(menu);
+            const Icon = menu.icon;
+
+            return (
+              <li key={menu.id} role="none">
+                {/* Top-level menu item */}
+                <button
+                  onClick={() => handleMenuClick(menu)}
+                  onKeyDown={(e) => handleMenuKeyDown(e, menu)}
+                  className={clsx(
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+                    'hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+                    isActive
+                      ? 'bg-indigo-50 text-indigo-600 font-semibold'
+                      : 'text-slate-700 font-medium'
+                  )}
+                  aria-label={menu.label}
+                  aria-expanded={menu.submenus ? isExpanded : undefined}
+                  aria-haspopup={menu.submenus ? 'menu' : undefined}
+                  role="menuitem"
+                  data-menu-id={menu.id}
+                >
+                  <Icon
+                    className={clsx(
+                      'w-5 h-5 shrink-0',
+                      isActive ? 'text-indigo-600' : 'text-slate-500'
+                    )}
+                    aria-hidden="true"
+                  />
+                  
+                  {!isCollapsed && (
+                    <>
+                      <span className="flex-1 text-left text-sm">
+                        {menu.label}
+                      </span>
+                      
+                      {menu.submenus && (
+                        <span className="shrink-0">
+                          {isExpanded ? (
+                            <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                          )}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </button>
+
+                {/* Submenu items with animation */}
+                {menu.submenus && !isCollapsed && (
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.ul
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                        role="menu"
+                        aria-label={`${menu.label} submenu`}
+                      >
+                        <div className="mt-1 space-y-1 pl-11">
+                          {menu.submenus.map((submenu) => {
+                            const isSubmenuItemActive = isSubmenuActive(submenu);
+
+                            return (
+                              <li key={submenu.id} role="none">
+                                <button
+                                  onClick={() => handleSubmenuClick(submenu)}
+                                  onKeyDown={(e) => handleSubmenuKeyDown(e, submenu)}
+                                  className={clsx(
+                                    'w-full text-left px-3 py-2 rounded-lg text-sm transition-all',
+                                    'hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+                                    isSubmenuItemActive
+                                      ? 'bg-indigo-50 text-indigo-600 font-semibold'
+                                      : 'text-slate-600 font-medium'
+                                  )}
+                                  aria-label={submenu.label}
+                                  aria-current={isSubmenuItemActive ? 'page' : undefined}
+                                  role="menuitem"
+                                >
+                                  {submenu.label}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </div>
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
                 )}
-              </>
-            )}
-          </button>
-        ))}
-      </nav>
-
-      <div className="p-4 border-t border-slate-100">
-        {!isCollapsed && (
-          <div className="bg-slate-50 rounded-2xl p-4 mb-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-slate-300 overflow-hidden">
-                <img 
-                  src="https://picsum.photos/seed/user123/100/100" 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900">Bambang S.</p>
-                <p className="text-xs text-slate-500">Area Manager</p>
-              </div>
-            </div>
-            <button className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors">
-              <Settings className="w-3.5 h-3.5" />
-              Settings
-            </button>
-          </div>
-        )}
-        <button 
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200",
-            isCollapsed && "justify-center"
-          )}
-          title="Logout"
-        >
-          <LogOut className="w-5 h-5" />
-          {!isCollapsed && <span className="font-medium">Logout</span>}
-        </button>
+              </li>
+            );
+          })}
+        </ul>
       </div>
-    </div>
+    </nav>
   );
 };
 

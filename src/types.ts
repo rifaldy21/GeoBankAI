@@ -31,5 +31,10 @@ export interface DistrictData {
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
+  visualOutput?: {
+    type: 'chart' | 'table' | 'map';
+    data: any;
+    config?: any;
+  };
   timestamp: Date;
 }

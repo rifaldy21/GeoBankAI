@@ -333,3 +333,176 @@ export const MOCK_COMPETITIVE_DATA = [
   { district: 'Sawah Besar', bri: 35, mandiri: 28, bca: 20, bni: 12 },
   { district: 'Kemayoran', bri: 30, mandiri: 25, bca: 18, bni: 10 },
 ];
+
+// Campaign & Activation mock data
+export const MOCK_PRIORITY_REGIONS = [
+  { regionId: '1', regionName: 'Jakarta Selatan', opportunityScore: 92, potentialRevenue: 45200000000, merchantCount: 1247, rank: 1 },
+  { regionId: '2', regionName: 'Tangerang', opportunityScore: 88, potentialRevenue: 38700000000, merchantCount: 1089, rank: 2 },
+  { regionId: '3', regionName: 'Bekasi', opportunityScore: 85, potentialRevenue: 35400000000, merchantCount: 982, rank: 3 },
+  { regionId: '4', regionName: 'Bandung', opportunityScore: 82, potentialRevenue: 32100000000, merchantCount: 876, rank: 4 },
+  { regionId: '5', regionName: 'Surabaya', opportunityScore: 79, potentialRevenue: 29800000000, merchantCount: 823, rank: 5 },
+  { regionId: '6', regionName: 'Depok', opportunityScore: 76, potentialRevenue: 24500000000, merchantCount: 745, rank: 6 },
+  { regionId: '7', regionName: 'Bogor', opportunityScore: 73, potentialRevenue: 21300000000, merchantCount: 687, rank: 7 },
+  { regionId: '8', regionName: 'Semarang', opportunityScore: 70, potentialRevenue: 19700000000, merchantCount: 634, rank: 8 },
+  { regionId: '9', regionName: 'Medan', opportunityScore: 68, potentialRevenue: 18200000000, merchantCount: 598, rank: 9 },
+  { regionId: '10', regionName: 'Makassar', opportunityScore: 65, potentialRevenue: 16800000000, merchantCount: 567, rank: 10 }
+];
+
+export const MOCK_DORMANT_MERCHANTS = [
+  {
+    id: 'M001',
+    name: 'Warung Makan Sederhana',
+    location: { lat: -6.2088, lng: 106.8456 },
+    lastActivityDate: new Date('2024-09-15'),
+    daysSinceActivity: 95,
+    historicalValue: 45000000,
+    assignedRM: 'Ahmad Fauzi',
+    priority: 'high' as const
+  },
+  {
+    id: 'M002',
+    name: 'Toko Elektronik Jaya',
+    location: { lat: -6.2297, lng: 106.8467 },
+    lastActivityDate: new Date('2024-10-20'),
+    daysSinceActivity: 60,
+    historicalValue: 78000000,
+    assignedRM: 'Siti Nurhaliza',
+    priority: 'high' as const
+  },
+  {
+    id: 'M003',
+    name: 'Apotek Sehat Sentosa',
+    location: { lat: -6.2115, lng: 106.8452 },
+    lastActivityDate: new Date('2024-11-01'),
+    daysSinceActivity: 48,
+    historicalValue: 32000000,
+    assignedRM: 'Budi Santoso',
+    priority: 'medium' as const
+  },
+  {
+    id: 'M004',
+    name: 'Bengkel Motor Cepat',
+    location: { lat: -6.2088, lng: 106.8489 },
+    lastActivityDate: new Date('2024-08-10'),
+    daysSinceActivity: 131,
+    historicalValue: 56000000,
+    assignedRM: 'Ahmad Fauzi',
+    priority: 'high' as const
+  },
+  {
+    id: 'M005',
+    name: 'Salon Kecantikan Indah',
+    location: { lat: -6.2134, lng: 106.8423 },
+    lastActivityDate: new Date('2024-11-15'),
+    daysSinceActivity: 34,
+    historicalValue: 28000000,
+    assignedRM: 'Siti Nurhaliza',
+    priority: 'low' as const
+  },
+  {
+    id: 'M006',
+    name: 'Minimarket 24 Jam',
+    location: { lat: -6.2156, lng: 106.8478 },
+    lastActivityDate: new Date('2024-09-28'),
+    daysSinceActivity: 82,
+    historicalValue: 92000000,
+    assignedRM: 'Budi Santoso',
+    priority: 'high' as const
+  },
+  {
+    id: 'M007',
+    name: 'Restoran Padang Sedap',
+    location: { lat: -6.2098, lng: 106.8501 },
+    lastActivityDate: new Date('2024-10-05'),
+    daysSinceActivity: 75,
+    historicalValue: 64000000,
+    assignedRM: 'Ahmad Fauzi',
+    priority: 'medium' as const
+  },
+  {
+    id: 'M008',
+    name: 'Toko Bangunan Makmur',
+    location: { lat: -6.2187, lng: 106.8434 },
+    lastActivityDate: new Date('2024-11-20'),
+    daysSinceActivity: 29,
+    historicalValue: 38000000,
+    priority: 'low' as const
+  },
+  {
+    id: 'M009',
+    name: 'Laundry Express',
+    location: { lat: -6.2145, lng: 106.8512 },
+    lastActivityDate: new Date('2024-09-05'),
+    daysSinceActivity: 105,
+    historicalValue: 41000000,
+    assignedRM: 'Siti Nurhaliza',
+    priority: 'high' as const
+  },
+  {
+    id: 'M010',
+    name: 'Kafe Kopi Nusantara',
+    location: { lat: -6.2076, lng: 106.8445 },
+    lastActivityDate: new Date('2024-10-30'),
+    daysSinceActivity: 50,
+    historicalValue: 52000000,
+    assignedRM: 'Budi Santoso',
+    priority: 'medium' as const
+  }
+];
+
+export const MOCK_ACTIVE_CAMPAIGNS = [
+  {
+    id: 'C001',
+    name: 'Q4 Merchant Reactivation Drive',
+    type: 'reactivation' as const,
+    status: 'active' as const,
+    targetRegions: ['Jakarta Selatan', 'Tangerang', 'Bekasi'],
+    targetMerchants: ['M001', 'M002', 'M004', 'M006', 'M009'],
+    assignedRMs: ['Ahmad Fauzi', 'Siti Nurhaliza', 'Budi Santoso'],
+    startDate: new Date('2024-10-01'),
+    endDate: new Date('2024-12-31'),
+    metrics: {
+      targetCount: 150,
+      contacted: 98,
+      converted: 42,
+      conversionRate: 42.9,
+      revenue: 12300000000
+    }
+  },
+  {
+    id: 'C002',
+    name: 'New Year QRIS Activation',
+    type: 'acquisition' as const,
+    status: 'active' as const,
+    targetRegions: ['Bandung', 'Surabaya'],
+    targetMerchants: [],
+    assignedRMs: ['Ahmad Fauzi', 'Budi Santoso'],
+    startDate: new Date('2024-11-15'),
+    endDate: new Date('2025-01-31'),
+    metrics: {
+      targetCount: 200,
+      contacted: 67,
+      converted: 28,
+      conversionRate: 41.8,
+      revenue: 8500000000
+    }
+  },
+  {
+    id: 'C003',
+    name: 'High-Value Merchant Retention',
+    type: 'retention' as const,
+    status: 'active' as const,
+    targetRegions: ['Jakarta Selatan', 'Depok'],
+    targetMerchants: ['M002', 'M006'],
+    assignedRMs: ['Siti Nurhaliza'],
+    startDate: new Date('2024-11-01'),
+    endDate: new Date('2025-02-28'),
+    metrics: {
+      targetCount: 85,
+      contacted: 72,
+      converted: 58,
+      conversionRate: 80.6,
+      revenue: 24500000000
+    }
+  }
+];
