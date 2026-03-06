@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ChevronDown, ChevronRight, PanelLeftOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MENU_CONFIG, type MenuItem, type SubMenuItem } from '../config/menuConfig';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   toggleMenu,
   setActiveRoute,
@@ -39,6 +40,7 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { locale } = useLanguage();
   
   const expandedMenus = useSelector(selectExpandedMenus);
   const activeRoute = useSelector(selectActiveRoute);
@@ -48,6 +50,11 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  // Helper function to get label based on locale
+  const getLabel = (item: MenuItem | SubMenuItem): string => {
+    return locale === 'id' ? item.labelId : item.labelEn;
+  };
 
   // Preload components for expanded menus on mount
   useEffect(() => {
@@ -288,7 +295,7 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
                       ? 'bg-indigo-50 text-indigo-600 font-semibold'
                       : 'text-slate-700 font-medium'
                   )}
-                  aria-label={menu.label}
+                  aria-label={getLabel(menu)}
                   aria-expanded={menu.submenus ? isExpanded : undefined}
                   aria-haspopup={menu.submenus ? 'menu' : undefined}
                   role="menuitem"
@@ -305,7 +312,7 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
                   {!isCollapsed && (
                     <>
                       <span className="flex-1 text-left text-sm">
-                        {menu.label}
+                        {getLabel(menu)}
                       </span>
                       
                       {menu.submenus && (
@@ -332,7 +339,7 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
                         transition={{ duration: 0.2, ease: 'easeInOut' }}
                         className="overflow-hidden"
                         role="menu"
-                        aria-label={`${menu.label} submenu`}
+                        aria-label={`${getLabel(menu)} submenu`}
                       >
                         <div className="mt-1 space-y-1 pl-11">
                           {menu.submenus.map((submenu) => {
@@ -350,11 +357,11 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
                                       ? 'bg-indigo-50 text-indigo-600 font-semibold'
                                       : 'text-slate-600 font-medium'
                                   )}
-                                  aria-label={submenu.label}
+                                  aria-label={getLabel(submenu)}
                                   aria-current={isSubmenuItemActive ? 'page' : undefined}
                                   role="menuitem"
                                 >
-                                  {submenu.label}
+                                  {getLabel(submenu)}
                                 </button>
                               </li>
                             );
@@ -392,7 +399,7 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
           onMouseLeave={handleMenuMouseLeave}
         >
           <div className="px-3 py-2 border-b border-slate-200">
-            <p className="text-sm font-semibold text-slate-900">{menu.label}</p>
+            <p className="text-sm font-semibold text-slate-900">{getLabel(menu)}</p>
           </div>
           <div className="py-1">
             {menu.submenus.map((submenu) => {
@@ -410,7 +417,7 @@ const Sidebar: FC<SidebarProps> = ({ isCollapsed = false, onToggleCollapse }) =>
                       : 'text-slate-700'
                   )}
                 >
-                  {submenu.label}
+                  {getLabel(submenu)}
                 </button>
               );
             })}

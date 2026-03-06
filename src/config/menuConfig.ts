@@ -12,13 +12,15 @@ import {
 
 export interface SubMenuItem {
   id: string;
-  label: string;
+  labelId: string;
+  labelEn: string;
   path: string;
 }
 
 export interface MenuItem {
   id: string;
-  label: string;
+  labelId: string;
+  labelEn: string;
   icon: LucideIcon;
   path?: string;
   submenus?: SubMenuItem[];
@@ -27,103 +29,121 @@ export interface MenuItem {
 export const MENU_CONFIG: MenuItem[] = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    labelId: 'Dashboard',
+    labelEn: 'Dashboard',
     icon: LayoutDashboard,
     path: '/dashboard',
   },
   {
     id: 'territorial-intelligence',
-    label: 'Territorial Intelligence',
+    labelId: 'Territorial Intelligence',
+    labelEn: 'Territorial Intelligence',
     icon: Map,
     submenus: [
       {
         id: 'interactive-map',
-        label: 'Peta Interaktif',
+        labelId: 'Peta Interaktif',
+        labelEn: 'Interactive Map',
         path: '/territorial-intelligence/interactive-map',
       },
       {
         id: 'cluster-analysis',
-        label: 'Cluster & Area Analysis',
+        labelId: 'Cluster & Area Analysis',
+        labelEn: 'Cluster & Area Analysis',
         path: '/territorial-intelligence/cluster-analysis',
       },
       {
         id: 'drill-down',
-        label: 'Drill-down Capability',
+        labelId: 'Drill-down Capability',
+        labelEn: 'Drill-down Capability',
         path: '/territorial-intelligence/drill-down',
       },
     ],
   },
   {
     id: 'market-intelligence',
-    label: 'Market Intelligence',
+    labelId: 'Market Intelligence',
+    labelEn: 'Market Intelligence',
     icon: TrendingUp,
     submenus: [
       {
         id: 'tam-estimation',
-        label: 'TAM Estimation',
+        labelId: 'Estimasi TAM',
+        labelEn: 'TAM Estimation',
         path: '/market-intelligence/tam-estimation',
       },
       {
         id: 'penetration-analysis',
-        label: 'Penetration & Gap Analysis',
+        labelId: 'Analisis Penetrasi & Gap',
+        labelEn: 'Penetration & Gap Analysis',
         path: '/market-intelligence/penetration-analysis',
       },
     ],
   },
   {
     id: 'performance',
-    label: 'Performance',
+    labelId: 'Kinerja',
+    labelEn: 'Performance',
     icon: Users,
     submenus: [
       {
         id: 'rm-performance',
-        label: 'RM Performance',
+        labelId: 'Kinerja RM',
+        labelEn: 'RM Performance',
         path: '/performance/rm-performance',
       },
       {
         id: 'branch-performance',
-        label: 'Cabang Performance',
+        labelId: 'Kinerja Cabang',
+        labelEn: 'Branch Performance',
         path: '/performance/branch-performance',
       },
     ],
   },
   {
     id: 'intelligence-assistant',
-    label: 'Intelligence Assistant',
+    labelId: 'Intelligence Assistant',
+    labelEn: 'Intelligence Assistant',
     icon: Sparkles,
     path: '/intelligence-assistant',
   },
   {
     id: 'reporting',
-    label: 'Reporting & Analytics',
+    labelId: 'Pelaporan & Analitik',
+    labelEn: 'Reporting & Analytics',
     icon: BarChart3,
     path: '/reporting',
   },
   {
     id: 'data-management',
-    label: 'Data Management',
+    labelId: 'Manajemen Data',
+    labelEn: 'Data Management',
     icon: Database,
     submenus: [
       {
         id: 'internal-data',
-        label: 'Internal Data',
+        labelId: 'Data Internal',
+        labelEn: 'Internal Data',
         path: '/data-management/internal-data',
       },
       {
         id: 'external-data',
-        label: 'External Data',
+        labelId: 'Data Eksternal',
+        labelEn: 'External Data',
         path: '/data-management/external-data',
       },
       {
         id: 'geospatial-data',
-        label: 'Geospatial Data',
+        labelId: 'Data Geospasial',
+        labelEn: 'Geospatial Data',
         path: '/data-management/geospatial-data',
       },
     ],
   },
   {
     id: 'campaign',
-    label: 'Campaign & Activation',
+    labelId: 'Campaign & Activation',
+    labelEn: 'Campaign & Activation',
     icon: Target,
     path: '/campaign',
   },

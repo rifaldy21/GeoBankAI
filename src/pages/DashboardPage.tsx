@@ -12,6 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { filterDataByRole } from '../services/auth/roleFilters';
 import { Stat } from '../types';
 import { MOCK_TREND_DATA } from '../mockData';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Lazy load LeafletMap to ensure proper initialization
 const LeafletMap = lazy(() => import('../components/LeafletMap'));
@@ -35,6 +36,7 @@ const LeafletMap = lazy(() => import('../components/LeafletMap'));
 const DashboardPage: FC = () => {
   const { filters } = useFilters();
   const { user } = useAuth();
+  const { t, locale } = useTranslation();
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   // Count active filters
@@ -43,56 +45,58 @@ const DashboardPage: FC = () => {
   }, [filters]);
 
   // KPI data - would be fetched from API based on filters
-  const kpiStats: Stat[] = useMemo(() => [
-    {
-      label: 'Total Nasabah',
-      value: '12,450',
-      change: '+8.2% from last month',
-      trend: 'up',
-      icon: 'Users',
-      color: 'bg-indigo-600'
-    },
-    {
-      label: 'Total Merchant',
-      value: '3,280',
-      change: '+12.5% from last month',
-      trend: 'up',
-      icon: 'Store',
-      color: 'bg-purple-600'
-    },
-    {
-      label: 'CASA Growth',
-      value: '15.8%',
-      change: '+2.3% from last quarter',
-      trend: 'up',
-      icon: 'TrendingUp',
-      color: 'bg-emerald-600'
-    },
-    {
-      label: 'QRIS Penetration Rate',
-      value: '68.4%',
-      change: '+5.1% from last month',
-      trend: 'up',
-      icon: 'Wallet',
-      color: 'bg-amber-600'
-    },
-    {
-      label: 'TAM Coverage',
-      value: '42.3%',
-      change: '+3.2% from last month',
-      trend: 'up',
-      icon: 'TrendingUp',
-      color: 'bg-indigo-600'
-    },
-    {
-      label: 'Active Merchant Rate',
-      value: '87.6%',
-      change: '-1.2% from last month',
-      trend: 'down',
-      icon: 'Store',
-      color: 'bg-purple-600'
-    }
-  ], []);
+  const kpiStats: Stat[] = useMemo(() => {
+    return [
+      {
+        label: t.dashboard.kpi.totalCustomers,
+        value: '12,450',
+        change: locale === 'id' ? '+8.2% dari bulan lalu' : '+8.2% from last month',
+        trend: 'up',
+        icon: 'Users',
+        color: 'bg-indigo-600'
+      },
+      {
+        label: t.dashboard.kpi.totalMerchants,
+        value: '3,280',
+        change: locale === 'id' ? '+12.5% dari bulan lalu' : '+12.5% from last month',
+        trend: 'up',
+        icon: 'Store',
+        color: 'bg-purple-600'
+      },
+      {
+        label: t.dashboard.kpi.casaGrowth,
+        value: '15.8%',
+        change: locale === 'id' ? '+2.3% dari kuartal lalu' : '+2.3% from last quarter',
+        trend: 'up',
+        icon: 'TrendingUp',
+        color: 'bg-emerald-600'
+      },
+      {
+        label: t.dashboard.kpi.qrisPenetration,
+        value: '68.4%',
+        change: locale === 'id' ? '+5.1% dari bulan lalu' : '+5.1% from last month',
+        trend: 'up',
+        icon: 'Wallet',
+        color: 'bg-amber-600'
+      },
+      {
+        label: t.dashboard.kpi.tamCoverage,
+        value: '42.3%',
+        change: locale === 'id' ? '+3.2% dari bulan lalu' : '+3.2% from last month',
+        trend: 'up',
+        icon: 'TrendingUp',
+        color: 'bg-indigo-600'
+      },
+      {
+        label: t.dashboard.kpi.activeMerchantRate,
+        value: '87.6%',
+        change: locale === 'id' ? '-1.2% dari bulan lalu' : '-1.2% from last month',
+        trend: 'down',
+        icon: 'Store',
+        color: 'bg-purple-600'
+      }
+    ];
+  }, [t, locale]);
 
   // Top 10 regions by opportunity gap - would be fetched from API
   const topRegions = useMemo(() => {
@@ -150,15 +154,15 @@ const DashboardPage: FC = () => {
   return (
     <>
       <PageLayout
-        title="Dashboard"
-        subtitle="Executive overview of territorial intelligence and performance metrics"
+        title={t.dashboard.title}
+        subtitle={t.dashboard.subtitle}
         filterButton={
           <button
             onClick={() => setIsFilterSheetOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-sm font-medium text-slate-700"
           >
             <Filter className="w-4 h-4" />
-            <span>Filters</span>
+            <span>{t.common.filters}</span>
             {activeFilterCount > 0 && (
               <span className="ml-1 px-2 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-bold">
                 {activeFilterCount}
@@ -181,8 +185,8 @@ const DashboardPage: FC = () => {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">National Coverage Heatmap</h3>
-                <p className="text-sm text-slate-500">Geographical distribution of merchants and opportunities</p>
+                <h3 className="text-lg font-bold text-slate-900">{t.dashboard.map.title}</h3>
+                <p className="text-sm text-slate-500">{t.dashboard.map.subtitle}</p>
               </div>
             </div>
             <div className="h-[400px]">
@@ -191,7 +195,7 @@ const DashboardPage: FC = () => {
                   <div className="w-full h-full flex items-center justify-center bg-slate-50 rounded-lg">
                     <div className="text-center">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
-                      <p className="text-sm text-slate-600">Loading map...</p>
+                      <p className="text-sm text-slate-600">{t.dashboard.map.loading}</p>
                     </div>
                   </div>
                 }>
@@ -206,8 +210,8 @@ const DashboardPage: FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Top Opportunities</h3>
-              <p className="text-sm text-slate-500">Regions ranked by gap</p>
+              <h3 className="text-lg font-bold text-slate-900">{t.dashboard.topOpportunities.title}</h3>
+              <p className="text-sm text-slate-500">{t.dashboard.topOpportunities.subtitle}</p>
             </div>
           </div>
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
@@ -251,23 +255,23 @@ const DashboardPage: FC = () => {
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Year-over-Year Growth</h3>
-                <p className="text-sm text-slate-500">Annual performance comparison</p>
+                <h3 className="text-lg font-bold text-slate-900">{t.dashboard.trends.yoy}</h3>
+                <p className="text-sm text-slate-500">{t.dashboard.trends.yoySubtitle}</p>
               </div>
             </div>
           </div>
           <div className="space-y-4">
             {[
-              { metric: 'Total Nasabah', current: 12450, previous: 10230, growth: 21.7 },
-              { metric: 'Total Merchant', current: 3280, previous: 2650, growth: 23.8 },
-              { metric: 'CASA Value', current: 1.24, previous: 0.98, growth: 26.5, unit: 'T' },
-              { metric: 'QRIS Activation', current: 2245, previous: 1580, growth: 42.1 }
+              { metric: t.dashboard.trends.totalCustomers, current: 12450, previous: 10230, growth: 21.7 },
+              { metric: t.dashboard.trends.totalMerchants, current: 3280, previous: 2650, growth: 23.8 },
+              { metric: t.dashboard.trends.casaValue, current: 1.24, previous: 0.98, growth: 26.5, unit: 'T' },
+              { metric: t.dashboard.trends.qrisActivation, current: 2245, previous: 1580, growth: 42.1 }
             ].map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50">
                 <div>
                   <p className="text-sm font-bold text-slate-900">{item.metric}</p>
                   <p className="text-xs text-slate-500">
-                    {item.current.toLocaleString()}{item.unit || ''} vs {item.previous.toLocaleString()}{item.unit || ''}
+                    {item.current.toLocaleString()}{item.unit || ''} {t.dashboard.trends.vs} {item.previous.toLocaleString()}{item.unit || ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100">
@@ -290,8 +294,8 @@ const DashboardPage: FC = () => {
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">AI-Generated Alerts</h3>
-                <p className="text-sm text-slate-500">Insights and recommendations from Intelligence Assistant</p>
+                <h3 className="text-lg font-bold text-slate-900">{t.dashboard.alerts.title}</h3>
+                <p className="text-sm text-slate-500">{t.dashboard.alerts.subtitle}</p>
               </div>
             </div>
           </div>
@@ -319,7 +323,7 @@ const DashboardPage: FC = () => {
                       ? 'bg-amber-100 text-amber-700'
                       : 'bg-blue-100 text-blue-700'
                   }`}>
-                    {alert.priority.toUpperCase()}
+                    {alert.priority === 'high' ? t.dashboard.alerts.high : alert.priority === 'medium' ? t.dashboard.alerts.medium : t.dashboard.alerts.low}
                   </span>
                 </div>
                 <p className="text-sm text-slate-600">{alert.message}</p>
@@ -335,17 +339,17 @@ const DashboardPage: FC = () => {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">Intelligence Assistant</h3>
-              <p className="text-sm text-indigo-100">Ask anything about your data</p>
+              <h3 className="text-lg font-bold">{t.dashboard.assistant.title}</h3>
+              <p className="text-sm text-indigo-100">{t.dashboard.assistant.subtitle}</p>
             </div>
           </div>
           
           <div className="space-y-3 mb-6">
-            <p className="text-sm text-indigo-100">Quick queries:</p>
+            <p className="text-sm text-indigo-100">{t.dashboard.assistant.quickQueries}</p>
             {[
-              'Show top performing RMs',
-              'Analyze CASA growth trends',
-              'Find high-potential regions'
+              t.dashboard.assistant.query1,
+              t.dashboard.assistant.query2,
+              t.dashboard.assistant.query3
             ].map((query, idx) => (
               <button
                 key={idx}
@@ -360,7 +364,7 @@ const DashboardPage: FC = () => {
             to="/intelligence-assistant"
             className="block w-full px-4 py-3 rounded-xl bg-white text-indigo-600 font-bold text-center hover:bg-indigo-50 transition-colors"
           >
-            Open Intelligence Assistant
+            {t.dashboard.assistant.openButton}
           </Link>
         </div>
       </div>

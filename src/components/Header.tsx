@@ -1,6 +1,8 @@
 import { FC, useState, useRef, useEffect } from 'react';
-import { Menu, X, User, LogOut, ChevronDown, PanelLeftClose } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronDown, PanelLeftClose, Globe } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import FlagIcon from './FlagIcon';
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
@@ -23,8 +25,11 @@ interface HeaderProps {
  */
 const Header: FC<HeaderProps> = ({ onToggleMobileMenu, isMobileMenuOpen, isSidebarCollapsed = false, onToggleSidebar }) => {
   const { user, logout } = useAuth();
+  const { locale, setLocale } = useLanguage();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns ketika klik di luar
   useEffect(() => {
@@ -34,6 +39,12 @@ const Header: FC<HeaderProps> = ({ onToggleMobileMenu, isMobileMenuOpen, isSideb
         !profileDropdownRef.current.contains(event.target as Node)
       ) {
         setIsProfileDropdownOpen(false);
+      }
+      if (
+        languageDropdownRef.current &&
+        !languageDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsLanguageDropdownOpen(false);
       }
     };
 
@@ -50,6 +61,14 @@ const Header: FC<HeaderProps> = ({ onToggleMobileMenu, isMobileMenuOpen, isSideb
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Language options
+  const languages: Array<{ code: 'id' | 'en'; name: string }> = [
+    { code: 'id', name: 'Bahasa Indonesia' },
+    { code: 'en', name: 'English' },
+  ];
+
+  const currentLanguage = languages.find(lang => lang.code === locale) || languages[1];
 
   return (
     <header className="bg-white border-b border-slate-200 px-4 md:px-6" style={{ height: '73px' }}>
@@ -102,6 +121,52 @@ const Header: FC<HeaderProps> = ({ onToggleMobileMenu, isMobileMenuOpen, isSideb
 
         {/* User profile dropdown */}
         <div className="flex items-center gap-2 md:gap-4 ml-auto">
+          {/* Language Switcher */}
+          <div className="relative" ref={languageDropdownRef}>
+            <button
+              onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              aria-label="Change language"
+            >
+              <Globe className="w-4 h-4 text-slate-600" />
+              <span className="hidden md:inline">
+                <FlagIcon code={locale} className="w-5 h-4" />
+              </span>
+              <ChevronDown className="w-4 h-4 text-slate-600" />
+            </button>
+
+            {/* Language dropdown */}
+            {isLanguageDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-50">
+                <div className="p-2">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLocale(lang.code);
+                        setIsLanguageDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors ${
+                        locale === lang.code
+                          ? 'bg-indigo-50 text-indigo-600 font-medium'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <FlagIcon code={lang.code} className="w-6 h-4" />
+                      <span>{lang.name}</span>
+                      {locale === lang.code && (
+                        <svg className="w-4 h-4 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User profile dropdown */}
             {user && (
               <div className="relative" ref={profileDropdownRef}>
                 <button
