@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useMemo, useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, TrendingUp, AlertTriangle, ChevronRight, Filter } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -6,12 +6,15 @@ import PageLayout from '../components/PageLayout';
 import FilterSheet from '../components/FilterSheet';
 import StatCard from '../components/StatCard';
 import TrendChart from '../components/TrendChart';
-import LeafletMap from '../components/LeafletMap';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { useFilters } from '../contexts/FilterContext';
 import { useAuth } from '../contexts/AuthContext';
 import { filterDataByRole } from '../services/auth/roleFilters';
 import { Stat } from '../types';
 import { MOCK_TREND_DATA } from '../mockData';
+
+// Lazy load LeafletMap to ensure proper initialization
+const LeafletMap = lazy(() => import('../components/LeafletMap'));
 
 /**
  * DashboardPage Component
@@ -183,7 +186,18 @@ const DashboardPage: FC = () => {
               </div>
             </div>
             <div className="h-[400px]">
-              <LeafletMap />
+              <ErrorBoundary>
+                <Suspense fallback={
+                  <div className="w-full h-full flex items-center justify-center bg-slate-50 rounded-lg">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
+                      <p className="text-sm text-slate-600">Loading map...</p>
+                    </div>
+                  </div>
+                }>
+                  <LeafletMap />
+                </Suspense>
+              </ErrorBoundary>
             </div>
           </div>
         </div>

@@ -24,6 +24,22 @@ declare module 'leaflet' {
   }
 }
 
+// Helper function to safely create marker cluster group
+const createMarkerClusterGroup = (options: any): L.LayerGroup => {
+  try {
+    // Check if markerClusterGroup is available
+    if (typeof (L as any).markerClusterGroup === 'function') {
+      return (L as any).markerClusterGroup(options);
+    }
+  } catch (error) {
+    console.error('Error creating marker cluster group:', error);
+  }
+  
+  // Fallback to regular layer group
+  console.warn('Using regular LayerGroup instead of MarkerClusterGroup');
+  return L.layerGroup();
+};
+
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -114,8 +130,8 @@ const LeafletMap: React.FC = () => {
       maxZoom: 19,
     }).addTo(map);
 
-    // Initialize marker cluster group with optimized settings
-    const markerClusterGroup = L.markerClusterGroup({
+    // Initialize marker cluster group with optimized settings using helper function
+    const markerClusterGroup = createMarkerClusterGroup({
       maxClusterRadius: 80,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
@@ -126,7 +142,7 @@ const LeafletMap: React.FC = () => {
       chunkDelay: 50,
     });
 
-    markerClusterGroupRef.current = markerClusterGroup;
+    markerClusterGroupRef.current = markerClusterGroup as any;
     map.addLayer(markerClusterGroup);
 
     // Add heatmap layer group

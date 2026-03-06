@@ -5,38 +5,49 @@
 ### 1. Map Component Error: `t.markerClusterGroup is not a function`
 
 **Problem:**
-- Leaflet MarkerCluster plugin not properly imported in production build
-- TypeScript types not properly declared for the plugin
+- Leaflet MarkerCluster plugin not properly loaded in production build
+- Plugin may load after component tries to use it
+- TypeScript types not properly declared
 
-**Solution:**
-- Reorganized imports in `src/components/LeafletMap.tsx`
-- Added TypeScript module declaration for `leaflet.markercluster`
-- Ensured CSS imports are in correct order
+**Solution Applied:**
+1. **Added helper function with fallback** in `src/components/LeafletMap.tsx`:
+   ```typescript
+   const createMarkerClusterGroup = (options: any): L.LayerGroup => {
+     try {
+       if (typeof (L as any).markerClusterGroup === 'function') {
+         return (L as any).markerClusterGroup(options);
+       }
+     } catch (error) {
+       console.error('Error creating marker cluster group:', error);
+     }
+     // Fallback to regular layer group
+     return L.layerGroup();
+   };
+   ```
 
-**Changes Made:**
-```typescript
-// Before
-import L from 'leaflet';
-import 'leaflet.markercluster';
+2. **Added Suspense and ErrorBoundary** in `src/pages/DashboardPage.tsx`:
+   - Lazy load LeafletMap component
+   - Wrap with Suspense for loading state
+   - Wrap with ErrorBoundary for error handling
 
-// After
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+3. **Ensured proper import order**:
+   ```typescript
+   import L from 'leaflet';
+   import 'leaflet/dist/leaflet.css';
+   import 'leaflet.markercluster';
+   import 'leaflet.markercluster/dist/MarkerCluster.css';
+   import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+   ```
 
-// Added type declarations
-declare module 'leaflet' {
-  function markerClusterGroup(options?: any): MarkerClusterGroup;
-  
-  interface MarkerClusterGroup extends LayerGroup {
-    addLayer(layer: Layer): this;
-    addLayers(layers: Layer[]): this;
-    clearLayers(): this;
-  }
-}
-```
+**Files Modified:**
+- `src/components/LeafletMap.tsx` - Added helper function with fallback
+- `src/pages/DashboardPage.tsx` - Added Suspense and ErrorBoundary
+
+**How It Works:**
+- If markerClusterGroup plugin loads successfully, it will be used for clustering
+- If plugin fails to load or is not available, falls back to regular LayerGroup
+- Map will still work, just without clustering functionality
+- No more crashes or "function not found" errors
 
 ### 2. 404 Error on Page Refresh
 
