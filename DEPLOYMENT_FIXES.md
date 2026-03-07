@@ -2,11 +2,12 @@
 
 ## Issues Fixed
 
-### 1. Map Component Error: `t.markerClusterGroup is not a function`
+### 1. Map Component Error: `t.markerClusterGroup is not a function` & `addLayers is not a function`
 
 **Problem:**
 - Leaflet MarkerCluster plugin not properly loaded in production build
 - Plugin may load after component tries to use it
+- Regular LayerGroup doesn't have `addLayers` method (only `addLayer`)
 - TypeScript types not properly declared
 
 **Solution Applied:**
@@ -25,12 +26,23 @@
    };
    ```
 
-2. **Added Suspense and ErrorBoundary** in `src/pages/DashboardPage.tsx`:
+2. **Fixed addLayers method call** (line ~322):
+   ```typescript
+   // Check if addLayers method exists (MarkerClusterGroup)
+   if (markerClusterGroupRef.current && typeof (markerClusterGroupRef.current as any).addLayers === 'function') {
+     (markerClusterGroupRef.current as any).addLayers(markers);
+   } else if (markerClusterGroupRef.current) {
+     // Fallback for regular LayerGroup - add markers one by one
+     markers.forEach(marker => markerClusterGroupRef.current!.addLayer(marker));
+   }
+   ```
+
+3. **Added Suspense and ErrorBoundary** in `src/pages/DashboardPage.tsx`:
    - Lazy load LeafletMap component
    - Wrap with Suspense for loading state
    - Wrap with ErrorBoundary for error handling
 
-3. **Ensured proper import order**:
+4. **Ensured proper import order**:
    ```typescript
    import L from 'leaflet';
    import 'leaflet/dist/leaflet.css';
@@ -40,12 +52,12 @@
    ```
 
 **Files Modified:**
-- `src/components/LeafletMap.tsx` - Added helper function with fallback
+- `src/components/LeafletMap.tsx` - Added helper function with fallback and fixed addLayers call
 - `src/pages/DashboardPage.tsx` - Added Suspense and ErrorBoundary
 
 **How It Works:**
-- If markerClusterGroup plugin loads successfully, it will be used for clustering
-- If plugin fails to load or is not available, falls back to regular LayerGroup
+- If markerClusterGroup plugin loads successfully, it will be used for clustering with `addLayers()` batch method
+- If plugin fails to load or is not available, falls back to regular LayerGroup with individual `addLayer()` calls
 - Map will still work, just without clustering functionality
 - No more crashes or "function not found" errors
 

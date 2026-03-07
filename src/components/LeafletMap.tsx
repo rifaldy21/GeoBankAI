@@ -320,7 +320,13 @@ const LeafletMap: React.FC = () => {
     }
 
     // Add all markers to cluster group at once for better performance
-    markerClusterGroupRef.current.addLayers(markers);
+    // Check if addLayers method exists (MarkerClusterGroup)
+    if (markerClusterGroupRef.current && typeof (markerClusterGroupRef.current as any).addLayers === 'function') {
+      (markerClusterGroupRef.current as any).addLayers(markers);
+    } else if (markerClusterGroupRef.current) {
+      // Fallback for regular LayerGroup - add markers one by one
+      markers.forEach(marker => markerClusterGroupRef.current!.addLayer(marker));
+    }
     
     setIsUpdating(false);
   }, [layers]);
